@@ -1,5 +1,9 @@
 use anchor_lang::prelude::*;
 
+
+/// Constants
+pub const POOL_SEED: &str = "POOL";
+
 /**
  * Struct for Pool state
  */
