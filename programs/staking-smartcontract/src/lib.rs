@@ -1,18 +1,18 @@
 use anchor_lang::prelude::*;
 
-use mod states;
+pub mod states;
+pub mod instructions;
+
+use crate::instructions::*;
 
 declare_id!("7EwcQih3qmU9G95UTmxYbSfoyfvHME6hWLUuCb3Qef2Z");
 
 #[program]
 pub mod staking_smartcontract {
+
     use super::*;
 
-    pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        msg!("Greetings from: {:?}", ctx.program_id);
-        Ok(())
+    pub fn initialize_pool(ctx: Context<InitializePool>, reward_rate: u64) -> Result<()> {
+        _initialize_pool(ctx, reward_rate)
     }
 }
-
-#[derive(Accounts)]
-pub struct Initialize {}
