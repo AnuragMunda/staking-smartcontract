@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 
 pub mod states;
 pub mod instructions;
+pub mod utils;
 
 use crate::instructions::*;
 
@@ -14,5 +15,9 @@ pub mod staking_smartcontract {
 
     pub fn initialize_pool(ctx: Context<InitializePool>, reward_rate: u64) -> Result<()> {
         _initialize_pool(ctx, reward_rate)
+    }
+
+    pub fn stake(ctx: Context<Stake>, stake_amount: u64) -> Result<()> {
+        _stake(ctx, stake_amount)
     }
 }
