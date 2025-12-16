@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 
 use crate::states::pool::*;
-use crate::utils::{StakingError};
+use crate::utils::{InitializePoolEvent, StakingError};
 
 /// @notice Instruction to initialize the pool
 /// @params reward_rate Reward per second
@@ -26,6 +26,12 @@ pub fn _initialize_pool(
     pool.last_update_time = Clock::get()?.unix_timestamp;
     pool.paused = false;
     pool.bump = ctx.bumps.pool;
+
+    emit!(InitializePoolEvent {
+        pool: pool.key(),
+        admin: ctx.accounts.admin.key(),
+        reward_rate,
+    });
 
     Ok(())
 }
