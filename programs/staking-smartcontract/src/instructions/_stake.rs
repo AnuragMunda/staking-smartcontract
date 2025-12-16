@@ -51,19 +51,20 @@ pub fn _stake(ctx: Context<Stake>, stake_amount: u64) -> Result<()> {
     pool.total_stake = pool.total_stake.checked_add(stake_amount_u128).ok_or(StakingError::Overflow)?;
     pool.total_shares = pool.total_shares.checked_add(shares).ok_or(StakingError::Overflow)?;
 
-    // if new account, set owner/pool
+    // If new account, set owner/pool
     if user_stake.owner == Pubkey::default() {
         user_stake.owner = user.key();
         user_stake.pool = pool.key();
+        user_stake.bump = ctx.bumps.user_stake;
     } else {
         require!(user_stake.owner == user.key(), StakingError::InvalidOwner);
         require!(user_stake.pool == pool.key(), StakingError::InvalidPool);
     }
 
-    //update user staked_balance
-    user_stake.staked_balance = user_stake.staked_balance.checked_add(stake_amount_u128).ok_or(StakingError::Overflow)?;
+    // Update user shares
+    user_stake.shares = user_stake.shares.checked_add(shares).ok_or(StakingError::Overflow)?;
 
-    // set new reward_debt = user.shares * reward_per_share / SCALING
+    // Set new reward_debt = user.shares * reward_per_share / SCALING
     let prod = user_stake.shares.checked_mul(pool.acc_reward_per_share).ok_or(StakingError::Overflow)?;
     user_stake.reward_debt = prod.checked_div(SCALING_FACTOR).ok_or(StakingError::Overflow)?;
 

@@ -12,8 +12,7 @@ pub const USER_STAKE_SEED: &str = "USER_STAKE";
 pub struct UserStake {
     pub owner: Pubkey, // The owner of this stake
     pub pool: Pubkey, // The staking pool address
-
-    pub staked_balance: u128, // Token amount the user has currently staked
+    
     pub shares: u128, // User shares
     pub reward_debt: u128, // Rewards already accounted for
 
