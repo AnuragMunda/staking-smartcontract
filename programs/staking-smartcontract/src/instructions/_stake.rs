@@ -76,6 +76,9 @@ pub fn _stake(ctx: Context<Stake>, stake_amount: u64) -> Result<()> {
     Ok(())
 }
 
+
+//------------------------------------ Accounts ------------------------------------//
+
 #[derive(Accounts)]
 pub struct Stake<'info> {
     #[account(mut)]
