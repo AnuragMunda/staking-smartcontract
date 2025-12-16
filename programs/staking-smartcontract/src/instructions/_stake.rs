@@ -60,7 +60,7 @@ pub fn _stake(ctx: Context<Stake>, stake_amount: u64) -> Result<()> {
         require!(user_stake.pool == pool.key(), StakingError::InvalidPool);
     }
 
-    // compute pending rewards and update reward_debt
+    //update user staked_balance
     user_stake.staked_balance = user_stake.staked_balance.checked_add(stake_amount_u128).ok_or(StakingError::Overflow)?;
 
     // set new reward_debt = user.shares * reward_per_share / SCALING
@@ -121,7 +121,7 @@ fn sync_reward_vars(pool: &mut Account<Pool>, now: i64) -> Result<()> {
 
     // Calculate the time passed since last update
     let elapsed_time = (now - pool.last_update_time) as u128;
-    if elapsed_time == 0 || pool.total_shares == 0 || pool.reward_rate == 0 {
+    if pool.total_shares == 0 || pool.reward_rate == 0 {
         pool.last_update_time = now;
         return Ok(());
     }
