@@ -1,5 +1,5 @@
-pub mod _initialize_pool;
-pub use _initialize_pool::*;
+pub mod initialize_pool;
+pub use initialize_pool::*;
 
-pub mod _stake;
-pub use _stake::*;
+pub mod stake;
+pub use stake::*;
