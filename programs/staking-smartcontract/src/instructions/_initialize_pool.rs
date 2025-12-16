@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token::{Token, TokenAccount};
 
 use crate::states::pool::*;
+use crate::utils::{StakingError};
 
 /// @notice Instruction to initialize the pool
 /// @params reward_rate Reward per second
@@ -9,6 +10,8 @@ pub fn _initialize_pool(
     ctx: Context<InitializePool>,
     reward_rate: u64,
 ) -> Result<()> {
+    require!(reward_rate > 0u64, StakingError::InvalidAmount);
+
     let pool = &mut ctx.accounts.pool;
 
     pool.admin = ctx.accounts.admin.key();
