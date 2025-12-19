@@ -2,10 +2,7 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{self, Mint, TokenInterface, TokenAccount, TransferChecked};
 
 use crate::states::{Pool, UserStake, USER_STAKE_SEED};
-use crate::utils::{StakeEvent, StakingError};
-
-
-const SCALING_FACTOR: u128 = 1_000_000_000_000u128; // 1e12
+use crate::utils::{SCALING_FACTOR, StakeEvent, StakingError, sync_reward_vars};
 
 /// @dev Function to add stakes into the pool
 /// @param `stake_amount` The amount to deposit
@@ -111,37 +108,4 @@ pub struct Stake<'info> {
 
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
-}
-
-
-//------------------------------------ Helper Functions ------------------------------------//
-
-
-/// @dev Syncs the reward variables with respect to the elapsed time since last update
-fn sync_reward_vars(pool: &mut Account<Pool>, now: i64) -> Result<()> {
-    if now <= pool.last_update_time {
-        return Ok(());
-    }
-
-    // Calculate the time passed since last update
-    let elapsed_time = (now - pool.last_update_time) as u128;
-    if pool.total_shares == 0 || pool.reward_rate == 0 {
-        pool.last_update_time = now;
-        return Ok(());
-    }
-
-    // Calculate new rewards for the elapsed time
-    let new_rewards = (pool.reward_rate as u128)
-        .checked_mul(elapsed_time)
-        .ok_or(StakingError::Overflow)?;
-
-    // Calculate the reward for one share and then add it increment the accumulated reward per share value
-    // reward_per_share += new_rewards * SCALING_FACTOR / total_shares
-    let prod = new_rewards.checked_mul(SCALING_FACTOR).ok_or(StakingError::Overflow)?;
-    let increment = prod.checked_div(pool.total_shares).ok_or(StakingError::Overflow)?;
-
-    pool.acc_reward_per_share = pool.acc_reward_per_share.checked_add(increment).ok_or(StakingError::Overflow)?;
-    pool.last_update_time = now;
-
-    Ok(())
 }

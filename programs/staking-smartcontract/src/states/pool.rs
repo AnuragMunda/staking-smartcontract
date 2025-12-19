@@ -14,7 +14,6 @@ pub struct Pool {
     pub stake_mint: Pubkey, // Address of the staking token
     pub reward_mint: Pubkey, // Address of the reward token
     pub stake_vault: Pubkey, // Address of the vault for storing stake token
-    pub reward_vault: Pubkey, // Address of the vault for storing reward token
 
     pub reward_rate: u64, // Reward token per second
     pub total_stake: u128, // Total amount staked in the pool

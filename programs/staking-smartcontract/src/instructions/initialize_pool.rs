@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token, TokenAccount};
+use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::states::pool::*;
 use crate::utils::{InitializePoolEvent, StakingError};
@@ -18,7 +18,6 @@ pub fn _initialize_pool(
     pool.stake_mint = ctx.accounts.stake_mint.key();
     pool.reward_mint = ctx.accounts.reward_mint.key();
     pool.stake_vault = ctx.accounts.stake_vault.key();
-    pool.reward_vault = ctx.accounts.reward_vault.key();
     pool.reward_rate = reward_rate;
     pool.total_stake = 0u128;
     pool.total_shares = 0u128;
@@ -36,6 +35,9 @@ pub fn _initialize_pool(
     Ok(())
 }
 
+
+//------------------------------------ ACCOUNTS ------------------------------------//
+
 #[derive(Accounts)]
 pub struct InitializePool<'info> {
     #[account(mut)]
@@ -52,8 +54,15 @@ pub struct InitializePool<'info> {
 
     /// CHECK: stake mint - validated
     pub stake_mint: UncheckedAccount<'info>,
-    /// CHECK: reward mint - validated
-    pub reward_mint: UncheckedAccount<'info>,
+    
+    #[account(
+        init,
+        payer = admin,
+        mint::decimals = 9,
+        mint::authority = pool.key(),
+        mint::freeze_authority = admin.key(),
+    )]
+    pub reward_mint: InterfaceAccount<'info, Mint>,
 
     #[account(
         init,
@@ -63,18 +72,8 @@ pub struct InitializePool<'info> {
         seeds = [b"stake_vault", pool.key().as_ref()],
         bump
     )]
-    pub stake_vault: Account<'info, TokenAccount>,
+    pub stake_vault: InterfaceAccount<'info, TokenAccount>,
 
-    #[account(
-        init,
-        payer = admin,
-        token::mint = reward_mint,
-        token::authority = pool,
-        seeds = [b"reward_vault", pool.key().as_ref()],
-        bump
-    )]
-    pub reward_vault: Account<'info, TokenAccount>,
-
-    pub token_program: Program<'info, Token>,
+    pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
 }
