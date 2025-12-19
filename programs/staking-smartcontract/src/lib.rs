@@ -20,4 +20,8 @@ pub mod staking_smartcontract {
     pub fn stake(ctx: Context<Stake>, stake_amount: u64) -> Result<()> {
         _stake(ctx, stake_amount)
     }
+
+    pub fn claim_reward(ctx: Context<ClaimReward>) -> Result<()> {
+        _claim_reward(ctx)
+    }
 }
