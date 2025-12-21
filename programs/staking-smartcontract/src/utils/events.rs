@@ -18,6 +18,14 @@ pub struct StakeEvent {
 #[event]
 pub struct ClaimRewardEvent {
     pub pool: Pubkey,
-    pub user_ata: Pubkey,
+    pub user: Pubkey,
     pub reward_claimed: u64,
+}
+
+#[event]
+pub struct UnstakeEvent {
+    pub pool: Pubkey,
+    pub user: Pubkey,
+    pub unstaked_amount: u64,
+    pub reward_amount: u128,
 }
