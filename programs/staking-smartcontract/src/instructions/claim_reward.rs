@@ -51,7 +51,7 @@ pub fn _claim_reward(ctx: Context<ClaimReward>) -> Result<()> {
 
     emit!(ClaimRewardEvent {
         pool: pool.key(),
-        user_ata: user_ata.key(),
+        user: ctx.accounts.user.key(),
         reward_claimed: pending_reward_u64,
     });
     
