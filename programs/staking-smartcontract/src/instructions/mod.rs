@@ -6,3 +6,6 @@ pub use stake::*;
 
 pub mod claim_reward;
 pub use claim_reward::*;
+
+pub mod unstake;
+pub use unstake::*;

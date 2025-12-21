@@ -24,4 +24,8 @@ pub mod staking_smartcontract {
     pub fn claim_reward(ctx: Context<ClaimReward>) -> Result<()> {
         _claim_reward(ctx)
     }
+
+    pub fn unstake(ctx: Context<Unstake>, shares: u128) -> Result<()> {
+        _unstake(ctx, shares)
+    }
 }
