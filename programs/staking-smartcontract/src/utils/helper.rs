@@ -37,17 +37,17 @@ pub fn sync_reward_vars(pool: &mut Account<Pool>, now: i64) -> Result<()> {
 }
 
 /// @dev Calculates the pending reward to be claimed by a user
-pub fn user_pending_reward(user: &Account<UserStake>, pool: &Account<Pool>) -> Result<u128> {
-    if user.shares == 0 {
+pub fn user_pending_reward(user_stake: &Account<UserStake>, pool: &Account<Pool>) -> Result<u128> {
+    if user_stake.shares == 0 {
         return Ok(0u128);
     }
 
-    let prod = user.shares.checked_mul(pool.acc_reward_per_share).ok_or(StakingError::Overflow)?;
+    let prod = user_stake.shares.checked_mul(pool.acc_reward_per_share).ok_or(StakingError::Overflow)?;
     let acc_reward = prod.checked_div(SCALING_FACTOR).ok_or(StakingError::Overflow)?;
 
-    if acc_reward <= user.reward_debt {
+    if acc_reward <= user_stake.reward_debt {
         return Ok(0u128);
     }
 
-    Ok(acc_reward.checked_sub(user.reward_debt).ok_or(StakingError::Overflow)?)
+    Ok(acc_reward.checked_sub(user_stake.reward_debt).ok_or(StakingError::Overflow)?)
 }
