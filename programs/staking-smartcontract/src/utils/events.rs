@@ -32,6 +32,7 @@ pub struct UnstakeEvent {
 
 #[event]
 pub struct SetPauseEvent {
+    pub pool: Pubkey,
     pub paused: bool,
 }
 

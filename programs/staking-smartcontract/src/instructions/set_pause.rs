@@ -5,8 +5,12 @@ use crate::utils::SetPauseEvent;
 
 /// @dev Pauses the functions of the program
 pub fn _set_pause(ctx: Context<SetPause>, paused: bool) -> Result<()> {
-    ctx.accounts.pool.paused = paused;
+    let pool = &mut ctx.accounts.pool;
+
+    pool.paused = paused;
+
     emit!(SetPauseEvent {
+        pool: pool.key(), 
         paused,
     });
 
