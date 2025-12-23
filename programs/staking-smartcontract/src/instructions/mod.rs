@@ -9,3 +9,6 @@ pub use claim_reward::*;
 
 pub mod unstake;
 pub use unstake::*;
+
+pub mod set_pause;
+pub use set_pause::*;

@@ -28,4 +28,8 @@ pub mod staking_smartcontract {
     pub fn unstake(ctx: Context<Unstake>, shares: u128) -> Result<()> {
         _unstake(ctx, shares)
     }
+
+    pub fn set_pause(ctx: Context<SetPause>, paused: bool) -> Result<()> {
+        _set_pause(ctx, paused)
+    }
 }
