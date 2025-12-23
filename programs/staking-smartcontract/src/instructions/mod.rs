@@ -12,3 +12,6 @@ pub use unstake::*;
 
 pub mod set_pause;
 pub use set_pause::*;
+
+pub mod set_reward;
+pub use set_reward::*;

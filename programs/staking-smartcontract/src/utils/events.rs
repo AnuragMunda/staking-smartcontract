@@ -34,3 +34,9 @@ pub struct UnstakeEvent {
 pub struct SetPauseEvent {
     pub paused: bool,
 }
+
+#[event]
+pub struct SetRewardEvent {
+    pub pool: Pubkey,
+    pub reward_rate: u64,
+}

@@ -32,4 +32,8 @@ pub mod staking_smartcontract {
     pub fn set_pause(ctx: Context<SetPause>, paused: bool) -> Result<()> {
         _set_pause(ctx, paused)
     }
+
+    pub fn set_reward(ctx: Context<SetReward>, reward_rate: u64) -> Result<()> {
+        _set_reward(ctx, reward_rate)
+    }
 }
