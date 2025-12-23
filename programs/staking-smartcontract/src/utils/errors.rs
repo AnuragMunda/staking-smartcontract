@@ -8,8 +8,6 @@ pub enum StakingError {
     InvalidOwner,
     #[msg("Invalid pool for this account")]
     InvalidPool,
-    #[msg("Unauthorized action")]
-    Unauthorized,
     #[msg("Paused")]
     Paused,
     #[msg("Invalid amount")]
