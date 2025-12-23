@@ -9,13 +9,12 @@ pub fn _set_pause(ctx: Context<SetPause>, paused: bool) -> Result<()> {
     emit!(SetPauseEvent {
         paused,
     });
-    
+
     Ok(())
 }
 
 #[derive(Accounts)]
 pub struct SetPause<'info> {
-    #[account(mut)]
     pub admin: Signer<'info>,
 
     #[account(mut, has_one = admin)]
