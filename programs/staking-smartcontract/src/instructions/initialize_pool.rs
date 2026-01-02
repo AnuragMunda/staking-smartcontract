@@ -55,13 +55,7 @@ pub struct InitializePool<'info> {
     /// CHECK: stake mint - validated
     pub stake_mint: UncheckedAccount<'info>,
     
-    #[account(
-        init,
-        payer = admin,
-        mint::decimals = 9,
-        mint::authority = pool.key(),
-        mint::freeze_authority = admin.key(),
-    )]
+    #[account(mint::token_program = token_program)]
     pub reward_mint: InterfaceAccount<'info, Mint>,
 
     #[account(
