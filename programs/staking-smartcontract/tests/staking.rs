@@ -3,15 +3,18 @@ use litesvm::LiteSVM;
 use litesvm_token::{CreateMint, spl_token};
 use sha2::{Digest, Sha256};
 use solana_sdk::{
-    declare_id, message::{AccountMeta, Instruction}, pubkey::Pubkey, signature::{Keypair, Signer, read_keypair_file}, transaction::Transaction
+    message::{AccountMeta, Instruction}, 
+    pubkey::Pubkey, 
+    signature::{Keypair, Signer, read_keypair_file}, 
+    transaction::Transaction,
 };
 use borsh::BorshDeserialize;
+use solana_system_interface::program::ID;
 
 
 //************************* DECLARATIONS *************************//
 
 const POOL_SEED: &str = "POOL";
-declare_id!("11111111111111111111111111111111");
 
 #[derive(Debug, BorshDeserialize)]
 pub struct Pool {
@@ -19,7 +22,6 @@ pub struct Pool {
     pub stake_mint: Pubkey,
     pub reward_mint: Pubkey,
     pub stake_vault: Pubkey,
-    pub reward_vault: Pubkey,
     pub reward_rate: u64,
     pub total_stake: u128,
     pub total_shares: u128,
@@ -126,6 +128,13 @@ fn initialize_staking() {
     // Derive the stake and reward vault pda
     let (stake_vault_pda, _bump) = get_stake_vault_pda(&pool_pda, &program_id);
 
+    let reward_mint = CreateMint::new(&mut svm, &admin)
+    .authority(&pool_pda)
+    .freeze_authority(&admin.pubkey())
+    .decimals(9)
+    .send()
+    .unwrap();
+
     const REWARD_RATE: u64 = 115_740;
 
     let discriminator = get_discriminator("initialize_pool");
@@ -140,11 +149,11 @@ fn initialize_staking() {
         accounts: vec![
             AccountMeta::new(admin.pubkey(), true),
             AccountMeta::new(pool_pda, false),
-            AccountMeta::new(mint, false),
-            AccountMeta::new(mint, false),
+            AccountMeta::new_readonly(mint, false),
+            AccountMeta::new_readonly(reward_mint, false),
             AccountMeta::new(stake_vault_pda, false),
-            AccountMeta::new(spl_token::id(), false),
-            AccountMeta::new(id(), false),
+            AccountMeta::new_readonly(spl_token::ID, false),
+            AccountMeta::new_readonly(ID, false),
         ],
         data: instruction_data,
     };
@@ -163,17 +172,18 @@ fn initialize_staking() {
             println!("Compute units: {}", meta.compute_units_consumed);
         }
         Err(err) => {
-            println!("Transaction failed: {:?}", err.err);
+            println!("Transaction failed: {:?}", err);
             println!("Failure logs: {:?}", err.meta.logs);
         }
     }
 
     let pool_account = svm.get_account(&pool_pda).expect("Pool account should exist");
-    let pool = Pool::deserialize(&mut &pool_account.data[8..]).expect("Failed to deserialize Pool");
+    let mut data_ptr = &pool_account.data[8..];
+    let pool = Pool::deserialize(&mut data_ptr).expect("Failed to deserialize Pool");
 
     assert_eq!(pool.admin, admin.pubkey());
     assert_eq!(pool.stake_mint, mint);
-    assert_eq!(pool.reward_mint, mint);
+    assert_eq!(pool.reward_mint, reward_mint);
     assert_eq!(pool.stake_vault, stake_vault_pda);
     assert_eq!(pool.reward_rate, REWARD_RATE);
     assert_eq!(pool.total_stake, 0);
