@@ -1,4 +1,4 @@
-use std::{path::PathBuf, str::FromStr};
+use std::{path::PathBuf};
 use litesvm::LiteSVM;
 use litesvm_token::{CreateMint, spl_token};
 use sha2::{Digest, Sha256};
@@ -50,9 +50,9 @@ fn get_pool_pda(stake_mint: &Pubkey, program_id: &Pubkey) -> (Pubkey, u8) {
 }
 
 // Helper function to derive stake or reward vault PDA
-fn get_stake_or_reward_vault_pda(keyword: &str, pool: &Pubkey, program_id: &Pubkey) -> (Pubkey, u8) {
+fn get_stake_vault_pda(pool: &Pubkey, program_id: &Pubkey) -> (Pubkey, u8) {
     Pubkey::find_program_address(
-       &[keyword.as_bytes(), pool.as_ref()],
+       &[b"stake_vault", pool.as_ref()],
         program_id,
     )
 }
@@ -78,19 +78,30 @@ fn create_token_mint(svm: &mut LiteSVM, payer: &Keypair) -> Pubkey {
     mint
 }
 
+// Helper function to deploy the program
+fn deploy_staking_program() -> (Pubkey, LiteSVM) {
+    // Initialize the test environment
+    let mut svm = LiteSVM::new();
+
+    // Get the staking program keypair
+    let program_keypair = read_keypair_file(program_keypair_path()).expect("Program keypair file not found");
+    // Get the address of the staking program
+    let program_id = program_keypair.pubkey();
+
+    let program_bytes = include_bytes!("../../../target/deploy/staking_smartcontract.so");
+
+    // Deploy the staking program
+    svm.add_program(program_id, program_bytes).expect("Failed to deploy programs");
+
+    return (program_id, svm);
+}
+
 
 //************************* TEST CASES *************************//
 
 #[test]
 fn program_deployment() {
-    let mut svm = LiteSVM::new();
-
-    let program_keypair = read_keypair_file(program_keypair_path()).expect("Program keypair file not found");
-    let program_id = program_keypair.pubkey();
-
-    let program_bytes = include_bytes!("../../../target/deploy/staking_smartcontract.so");
-
-    svm.add_program(program_id, program_bytes).expect("Failed to deploy programs");
+    let (program_id, svm) = deploy_staking_program();
 
     assert!(svm.get_account(&program_id).is_some(), "Program account not created");
     assert!(svm.get_account(&program_id).unwrap().executable, "Program not executable");
@@ -98,30 +109,22 @@ fn program_deployment() {
 
 #[test]
 fn initialize_staking() {
-    // Initialize the test environment
-    let mut svm = LiteSVM::new();
+    // Deploy the program
+    let (program_id, mut svm) = deploy_staking_program();
+
     // Create an Admin
     let admin = Keypair::new();
     
     // Drop some lamports to the admin
     svm.airdrop(&admin.pubkey(), 1_000_000_000).unwrap();
 
-    // Get the staking program keypair
-    let program_keypair = read_keypair_file(program_keypair_path()).expect("Program keypair file not found");
-    // Get the address of the staking program
-    let program_id = program_keypair.pubkey();
-    let program_bytes = include_bytes!("../../../target/deploy/staking_smartcontract.so");
-
-    // Deploy the staking program
-    svm.add_program(program_id, program_bytes).expect("Failed to deploy programs");
     // Create token min
     let mint = create_token_mint(&mut svm, &admin);
 
     // Derive the pool pda
     let (pool_pda, bump) = get_pool_pda(&mint, &program_id);
     // Derive the stake and reward vault pda
-    let (stake_vault_pda, _bump) = get_stake_or_reward_vault_pda("stake_vault", &pool_pda, &program_id);
-    let (reward_vault_pda, _bump) = get_stake_or_reward_vault_pda("reward_vault", &pool_pda, &program_id);
+    let (stake_vault_pda, _bump) = get_stake_vault_pda(&pool_pda, &program_id);
 
     const REWARD_RATE: u64 = 115_740;
 
@@ -140,7 +143,6 @@ fn initialize_staking() {
             AccountMeta::new(mint, false),
             AccountMeta::new(mint, false),
             AccountMeta::new(stake_vault_pda, false),
-            AccountMeta::new(reward_vault_pda, false),
             AccountMeta::new(spl_token::id(), false),
             AccountMeta::new(id(), false),
         ],
@@ -173,7 +175,6 @@ fn initialize_staking() {
     assert_eq!(pool.stake_mint, mint);
     assert_eq!(pool.reward_mint, mint);
     assert_eq!(pool.stake_vault, stake_vault_pda);
-    assert_eq!(pool.reward_vault, reward_vault_pda);
     assert_eq!(pool.reward_rate, REWARD_RATE);
     assert_eq!(pool.total_stake, 0);
     assert_eq!(pool.total_shares, 0);
